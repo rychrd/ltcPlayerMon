@@ -68,7 +68,7 @@ def udp_listen(udp_sock):
         exit()
 
 
-def do_reboot():
+def sys_reboot():
     if platform == "Windows":
         run(['shutdown', '/f', '/r', '/t', '0'])
 
@@ -76,28 +76,42 @@ def do_reboot():
         run(['sudo', 'shutdown', '-r', 'now'])
 
 
-def screen_sleep(_ser, _model):
+def screen_sleep(_ser, _display):
 
-    if platform == 'Windows':
-        if _model == 'illyama':
-            _ser.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x01\xBB')
-        elif _model == 'sharp':
-            _ser.write(b'POWR0000\r\n')
+    if _display == 'illyama':
+        _ser.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x01\xBB')
 
-    elif platform == 'Linux':
+    elif _display == 'sharp':
+        _ser.write(b'POWR0000\r\n')
+
+    elif _display == 'custom' and platform == 'Linux':
         run(['vcgencmd', 'display_power', '0'])
 
+    elif _display == 'proj':
+        ser.write(b'~0000 0\r')
+        print(f'sent a {message.decode()} command to {ser.port}')
 
-def screen_wake(_ser, _model):
+    else:
+        print(f"can't control screen with this OS {platform} and screen type {_display}")
 
-    if platform == 'Windows':
-        if _model == 'illyama':
-            _ser.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x02\xB8')
-        elif _model == 'sharp':
-            _ser.write(b'POWR0001\r\n')
 
-    elif platform == 'Linux':
+def screen_wake(_serial, _display):
+
+    if _display == 'illyama':
+        _serial.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x02\xB8')
+
+    elif _display == 'sharp':
+        _serial.write(b'POWR0001\r\n')
+
+    elif _display == 'proj':
+        ser.write(b'~0000 0\r')
+        print(f'sent a {message.decode()} command to {ser.port}')
+
+    elif _display == 'custom' and platform == 'Linux':
         run(['vcgencmd', 'display_power', '1'])
+
+    else:
+        print(f"can't control screen with this OS {platform} and screen type {_display}")
 
 
 if __name__ == '__main__':
@@ -109,7 +123,7 @@ if __name__ == '__main__':
     else:
         ser = setup_serial('/dev/ttyAMA0/')
 
-    screen_type = 'illyama'     # or 'sharp'
+    display = 'illyama'     # or 'sharp' or 'proj'
 
     try:
         while True:
@@ -117,21 +131,21 @@ if __name__ == '__main__':
             print(f"received message {message} from {sender}")
 
             if message == b'restart' or message == host.encode():
-                do_reboot()
+                sys_reboot()
 
-            elif message == b'projOFF':
+            elif message == b'projOFF' and display == 'proj':
                 ser.write(b'~0000 0\r')
                 print(f'sent a {message.decode()} command to {ser.port}')
 
-            elif message == b'projON':
+            elif message == b'projON' and display == 'proj':
                 ser.write(b'~0000 1\r')
                 print(f'sent a {message.decode()} command to {ser.port}')
 
             elif message == b'sleep':
-                screen_sleep(ser, screen_type)
+                screen_sleep(ser, display)
 
             elif message == b'wake':
-                screen_wake(ser, screen_type)
+                screen_wake(ser, display)
 
             else:
                 continue
