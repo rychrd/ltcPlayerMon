@@ -82,18 +82,18 @@ def kill_player():
         run(['sudo', 'killall', 'ltcVid*'])
 
 
-def screen_sleep(_ser, _display):
+def screen_sleep(_serial, _display):
     if _display == 'illyama':
-        _ser.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x01\xBB')
+        _serial.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x01\xBB')
 
     elif _display == 'sharp':
-        _ser.write(b'POWR0000\r\n')
+        _serial.write(b'POWR0000\r\n')
 
     elif _display == 'custom' and platform == 'Linux':
         run(['vcgencmd', 'display_power', '0'])
 
     elif _display == 'proj':
-        ser.write(b'~0000 0\r')
+        _serial.write(b'~0000 0\r')
         print(f'sent a {message.decode()} command to {ser.port}')
 
     else:
@@ -109,7 +109,7 @@ def screen_wake(_serial, _display):
         _serial.write(b'POWR0001\r\n')
 
     elif _display == 'proj':
-        ser.write(b'~0000 1\r')
+        _serial.write(b'~0000 1\r')
         print(f'sent a {message.decode()} command to {ser.port}')
 
     elif _display == 'custom' and platform == 'Linux':
@@ -124,11 +124,11 @@ if __name__ == '__main__':
     sock, host = setup_udp()
 
     if platform == 'Windows':
-        ser = serial.Serial('COM2', 9600)   # setup_serial('COM2')
+        ser = setup_serial('COM2')
     else:
-        ser = serial.Serial('/dev/ttyAMA0', 9600)
+        ser = setup_serial('/dev/ttyAMA0', 9600)
 
-    display = 'illyama'     # or 'sharp' or 'proj'
+    display = 'proj'     # or 'sharp' or 'proj'
 
     try:
         while True:
