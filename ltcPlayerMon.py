@@ -109,7 +109,7 @@ def screen_wake(_serial, _display):
         _serial.write(b'POWR0001\r\n')
 
     elif _display == 'proj':
-        ser.write(b'~0000 0\r')
+        ser.write(b'~0000 1\r')
         print(f'sent a {message.decode()} command to {ser.port}')
 
     elif _display == 'custom' and platform == 'Linux':
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     if platform == 'Windows':
         ser = serial.Serial('COM2', 9600)   # setup_serial('COM2')
     else:
-        ser = serial.Serial('/dev/ttyAMA0/', 9600)
+        ser = serial.Serial('/dev/ttyAMA0', 9600)
 
     display = 'illyama'     # or 'sharp' or 'proj'
 
