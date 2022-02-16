@@ -46,6 +46,7 @@ def setup_udp():
 
 
 def setup_serial(device, baud=9600):
+    _ser_sock = None
     try:
         _ser_sock = serial.Serial(device, baud)
 
@@ -76,8 +77,12 @@ def sys_reboot():
         run(['sudo', 'shutdown', '-r', 'now'])
 
 
-def screen_sleep(_ser, _display):
+def kill_player():
+    if platform == 'Linux':
+        run(['sudo', 'killall', 'ltcVid*'])
 
+
+def screen_sleep(_ser, _display):
     if _display == 'illyama':
         _ser.write(b'\xA6\x01\x00\x00\x00\x04\x01\x18\x01\xBB')
 
@@ -92,7 +97,7 @@ def screen_sleep(_ser, _display):
         print(f'sent a {message.decode()} command to {ser.port}')
 
     else:
-        print(f"can't control screen with this OS {platform} and screen type {_display}")
+        print(f"can't control screen with this OS {platform} and display combo {_display}")
 
 
 def screen_wake(_serial, _display):
@@ -119,19 +124,22 @@ if __name__ == '__main__':
     sock, host = setup_udp()
 
     if platform == 'Windows':
-        ser = setup_serial('COM2')
+        ser = serial.Serial('COM2', 9600)   # setup_serial('COM2')
     else:
-        ser = setup_serial('/dev/ttyAMA0/')
+        ser = serial.Serial('/dev/ttyAMA0/', 9600)
 
     display = 'illyama'     # or 'sharp' or 'proj'
 
     try:
         while True:
             message, sender = next(udp_listen(sock))
-            print(f"received message {message} from {sender}")
+            print(f"received message '{message.decode()}' from {sender}")
 
             if message == b'restart' or message == host.encode():
                 sys_reboot()
+
+            elif message == b'kill':
+                kill_player()
 
             elif message == b'projOFF' and display == 'proj':
                 ser.write(b'~0000 0\r')
