@@ -138,7 +138,7 @@ if __name__ == '__main__':
             if message == b'restart' or message == host.encode():
                 sys_reboot()
 
-            elif message == b'kill':
+            elif message == b'killplayer':
                 kill_player()
 
             elif message == b'projOFF' and display == 'proj':
